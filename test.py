@@ -24,15 +24,15 @@ class Test:
                 outputs = self.model(inputs, mask)
 
                 
-                plt.figure()
-                plt.imshow(inputs[0,0].cpu().detach().numpy())
-                plt.figure()
-                plt.imshow(outputs[0,0].cpu().detach().numpy())
-                plt.figure()
-                plt.imshow((outputs*mask)[0,0].cpu().detach().numpy())
-                plt.figure()
-                plt.imshow(labels[0,0].cpu().detach().numpy())
-                plt.show()
+                # plt.figure()
+                # plt.imshow(inputs[0,0].cpu().detach().numpy())
+                # plt.figure()
+                # plt.imshow(outputs[0,0].cpu().detach().numpy())
+                # plt.figure()
+                # plt.imshow((outputs*mask)[0,0].cpu().detach().numpy())
+                # plt.figure()
+                # plt.imshow(labels[0,0].cpu().detach().numpy())
+                # plt.show()
                 
 
                 # Loss computation

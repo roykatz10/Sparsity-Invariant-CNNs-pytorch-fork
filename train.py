@@ -23,7 +23,7 @@ class Train:
 
             # Get the inputs and labels
             inputs = batch_data[0].to(self.device)
-            labels = batch_data[1].to(self.device)
+            labels = batch_data[1].to(self.device).float()
 
             # Forward propagation
             mask = (inputs>0).float()
