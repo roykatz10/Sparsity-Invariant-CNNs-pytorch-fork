@@ -71,19 +71,13 @@ class SparseConvNet(nn.Module):
         self.SparseLayer5 = SparseConv(16, 16, 3)
         self.SparseLayer6 = SparseConv(16, 1, 1)
 
-        self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(784, 10)          
-
     def forward(self, x, mask):
-                                             # ( 1, 28, 28)
-        x, mask = self.SparseLayer1(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer2(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer3(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer4(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer5(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer6(x, mask) # ( 1, 28, 28)
-
-        x = self.flatten(x) # (1 x 28 x 28 = 784)
-        x = self.linear1(x) # (10)
+        
+        x, mask = self.SparseLayer1(x, mask)
+        x, mask = self.SparseLayer2(x, mask)
+        x, mask = self.SparseLayer3(x, mask)
+        x, mask = self.SparseLayer4(x, mask)
+        x, mask = self.SparseLayer5(x, mask)
+        x, mask = self.SparseLayer6(x, mask)
 
         return x
