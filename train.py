@@ -36,7 +36,7 @@ class Train:
             # mask = (inputs>-100).float().to(self.device)
             mask = (torch.rand(inputs.shape) > 0.7).float().to(self.device)
 
-            outputs = self.model(inputs, mask, epoch_nr)
+            outputs = self.model(inputs, mask)
 
             if step < 3:
                 print('labels', labels)
