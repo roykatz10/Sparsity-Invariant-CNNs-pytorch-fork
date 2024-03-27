@@ -1,5 +1,6 @@
 import torch.nn as nn
 from matplotlib import pyplot as plt
+import torch
 
 class Train:
 
@@ -10,7 +11,7 @@ class Train:
         self.criterion = criterion
         self.device = device
 
-    def run_epoch(self, lr_updater, iteration_loss=False):
+    def run_epoch(self, lr_updater, epoch_nr, iteration_loss=False, ):
         """Runs an epoch of training.
 
         Keyword arguments:
@@ -23,6 +24,7 @@ class Train:
         self.model.train()
         epoch_loss = 0.0
         epoch_acc = 0.0
+
 
         for step, batch_data in enumerate(self.data_loader):
 
@@ -55,7 +57,15 @@ class Train:
             
 
             mask = (inputs>=0).float()
+            # mask = (inputs>-100).float().to(self.device)
+            mask = (torch.rand(inputs.shape) > 0.7).float().to(self.device)
+
             outputs = self.model(inputs, mask)
+
+            if step < 3:
+                print('labels', labels)
+                print('output', torch.argmax(outputs, dim = -1) )
+                print('output2', outputs)
 
             # Loss computation
             

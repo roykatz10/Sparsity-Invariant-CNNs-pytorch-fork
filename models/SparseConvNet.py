@@ -50,7 +50,7 @@ class SparseConv(nn.Module):
         x = x*mask
         x = self.conv(x)
         normalizer = 1/(self.sparsity(mask)+1e-8)
-        x = x * normalizer + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3)
+        x = x  + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3)
         x = self.relu(x)
         
         mask = self.max_pool(mask)

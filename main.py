@@ -76,8 +76,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def load_dataset():
 
     data = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42) 
-    data_train, data_val = random_split(data, [0.8, 0.2], generator=torch.Generator().manual_seed(42)) 
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+
+    train_size = int(0.8 * len(data))
+    test_size = len(data) - train_size
+
+    data_train, data_val = random_split(data, [train_size, test_size], generator=torch.Generator().manual_seed(42))
 
     train_loader = DataLoader(data_train, batch_size=128, shuffle=True)
     val_loader = DataLoader(data_val, batch_size=128, shuffle=True)
