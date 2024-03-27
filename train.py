@@ -1,3 +1,5 @@
+import torch.nn as nn
+
 class Train:
 
     def __init__(self, model, data_loader, optim, criterion, device):
@@ -22,6 +24,9 @@ class Train:
         for step, batch_data in enumerate(self.data_loader):
 
             # Get the inputs and labels
+            # batch_data[0] (128, 1, 28, 28)
+            # batch_data[1] (128)
+            
             inputs = batch_data[0].to(self.device)
             labels = batch_data[1].to(self.device)
 
@@ -30,8 +35,30 @@ class Train:
             outputs = self.model(inputs, mask)
 
             # Loss computation
-            loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
+            # print('output', outputs.shape)
+            # print('label', labels.shape)
+            # print('mask', mask.shape)
+            # raise
+            
+            # loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
 
+            # print(outputs.requires_grad)
+            # print(labels.requires_grad)
+            # raise
+            # print(outputs.shape)
+            # print(nn.functional.softmax(outputs, dim=-1).argmax(dim=-1).shape)
+            # print(nn.functional.softmax(outputs, dim=-1))
+            # raise
+            # print(nn.functional.softmax(outputs, dim=-1).argmax(dim=-1))
+            # print(labels)
+            loss = nn.CrossEntropyLoss()(outputs, labels)
+
+            # loss = self.criterion(outputs.squeeze().float(), labels.float())
+            # loss.requires_grad = True
+            # print(loss.shape)
+            # print(outputs.squeeze().float().shape)
+            # print(labels.float().shape)
+            # raise
             # Backpropagation
             self.optim.zero_grad()
             loss.backward()
