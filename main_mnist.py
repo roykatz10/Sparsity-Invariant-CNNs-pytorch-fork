@@ -27,6 +27,8 @@ import numpy as np
 # Get the arguments
 args = get_arguments()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(torch.cuda.is_available())
+print(device)
 
 
 def load_dataset(dataset):

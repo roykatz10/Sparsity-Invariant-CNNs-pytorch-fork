@@ -1,3 +1,6 @@
+import torch.nn as nn
+
+
 class Train:
 
     def __init__(self, model, data_loader, optim, criterion, device):
@@ -19,18 +22,27 @@ class Train:
         """
         self.model.train()
         epoch_loss = 0.0
+
+        l = 0
         for step, batch_data in enumerate(self.data_loader):
 
             # Get the inputs and labels
             inputs = batch_data[0].to(self.device)
-            labels = batch_data[1].to(self.device).float()
+
+            labels = batch_data[1].to(self.device)
 
             # Forward propagation
-            mask = (inputs>0).float()
+            mask = (inputs> -100000).float()
+            # if l == 0:
+            #     print(inputs)
+            #     l = 1
+            #     print('mask', mask)
             outputs = self.model(inputs, mask)
 
             # Loss computation
-            loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
+            # loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
+            loss = nn.CrossEntropyLoss()(outputs, labels)
+
 
             # Backpropagation
             self.optim.zero_grad()

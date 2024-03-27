@@ -1,5 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
+import torch.nn as nn
+
 
 class Test:
 
@@ -36,12 +38,18 @@ class Test:
                 
 
                 # Loss computation
-                loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
+                # loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
+                loss = nn.CrossEntropyLoss()(outputs, labels)
+
 
             # Keep track of loss for current epoch
             epoch_loss += loss.item()
+            # print(labels)
+            # print(outputs)
 
             if iteration_loss:
                 print("[Step: %d] Iteration loss: %.4f" % (step, loss.item()))
+
+        print(epoch_loss)
 
         return epoch_loss / len(self.data_loader)

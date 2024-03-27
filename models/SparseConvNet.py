@@ -4,6 +4,7 @@ import torch
 
 class SparseConv(nn.Module):
 
+
     def __init__(self,
                  in_channels,
                  out_channels,
@@ -43,14 +44,24 @@ class SparseConv(nn.Module):
             kernel_size, 
             stride=1, 
             padding=padding)
+        self.count = 0
 
         
 
     def forward(self, x, mask):
+
         x = x*mask
+        if(self.count < 1):
+            print('x', torch.sum(x))
+            print('mask', torch.sum(mask))
+            print('mul', torch.sum(x*mask))
+
+            self.count = self.count + 1
         x = self.conv(x)
-        normalizer = 1/(self.sparsity(mask)+1e-8)
-        x = x * normalizer + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3)
+        # normalizer = 1/(self.sparsity(mask)+1e-8)
+        # x = x * normalizer + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3)
+
+        x = x +  self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3)
         x = self.relu(x)
         
         mask = self.max_pool(mask)
@@ -70,6 +81,9 @@ class SparseConvNet(nn.Module):
         self.SparseLayer5 = SparseConv(16, 16, 3)
         self.SparseLayer6 = SparseConv(16, 1, 1)
 
+        self.flatten = nn.Flatten()
+        self.linear1 = nn.Linear(784, 10)
+
     def forward(self, x, mask):
         x, mask = self.SparseLayer1(x, mask)
         x, mask = self.SparseLayer2(x, mask)
@@ -77,5 +91,10 @@ class SparseConvNet(nn.Module):
         x, mask = self.SparseLayer4(x, mask)
         x, mask = self.SparseLayer5(x, mask)
         x, mask = self.SparseLayer6(x, mask)
+
+        x = self.flatten(x)
+        # print(x.shape)
+        #
+        x = self.linear1(x)
 
         return x
