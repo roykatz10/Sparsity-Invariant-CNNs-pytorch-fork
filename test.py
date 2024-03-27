@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import matplotlib.pyplot as plt
 
 class Test:
@@ -24,20 +25,21 @@ class Test:
                 outputs = self.model(inputs, mask)
 
                 
-                plt.figure()
-                plt.imshow(inputs[0,0].cpu().detach().numpy())
-                plt.figure()
-                plt.imshow(outputs[0,0].cpu().detach().numpy())
-                plt.figure()
-                plt.imshow((outputs*mask)[0,0].cpu().detach().numpy())
-                plt.figure()
-                plt.imshow(labels[0,0].cpu().detach().numpy())
-                plt.show()
+                # plt.figure()
+                # plt.imshow(inputs[0,0].cpu().detach().numpy())
+                # plt.figure()
+                # plt.imshow(outputs[0,0].cpu().detach().numpy())
+                # plt.figure()
+                # plt.imshow((outputs*mask)[0,0].cpu().detach().numpy())
+                # plt.figure()
+                # plt.imshow(labels[0,0].cpu().detach().numpy())
+                # plt.show()
                 
 
                 # Loss computation
-                loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
+                # loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
 
+                loss = nn.CrossEntropyLoss()(outputs, labels)
             # Keep track of loss for current epoch
             epoch_loss += loss.item()
 

@@ -6,6 +6,9 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.utils.data as data
 import torchvision.transforms as transforms
+import torchvision.datasets as datasets
+from torch.utils.data import DataLoader, random_split
+from sklearn.model_selection import train_test_split
 
 from PIL import Image
 
@@ -15,54 +18,71 @@ from train import Train
 from test import Test
 from args import get_arguments
 import utils
-from data import CamVid as dataset
+# from data import CamVid as dataset
+
 
 # Get the arguments
 args = get_arguments()
 
-device = torch.device(args.device)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def load_dataset(dataset):
-    print("\nLoading dataset...\n")
+# def load_dataset(dataset):
+#     print("\nLoading dataset...\n")
 
-    print("Selected dataset:", args.dataset)
-    print("Dataset directory:", args.dataset_dir)
-    print("Save directory:", args.save_dir)
+#     print("Selected dataset:", args.dataset)
+#     print("Dataset directory:", args.dataset_dir)
+#     print("Save directory:", args.save_dir)
 
-    image_transform = ext_transforms.RandomCrop(336)
-    val_transform = transforms.ToTensor()
+#     image_transform = ext_transforms.RandomCrop(336)
+#     val_transform = transforms.ToTensor()
 
-    train_set = dataset(
-        args.dataset_dir,
-        transform=image_transform)
-    train_loader = data.DataLoader(
-        train_set,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=args.workers)
+#     train_set = dataset(
+#         args.dataset_dir,
+#         transform=image_transform)
+#     train_loader = data.DataLoader(
+#         train_set,
+#         batch_size=args.batch_size,
+#         shuffle=True,
+#         num_workers=args.workers)
 
-    # Load the validation set as tensors
-    val_set = dataset(
-        args.dataset_dir,
-        transform=val_transform,
-        mode='val')
-    val_loader = data.DataLoader(
-        val_set,
-        batch_size=args.batch_size,
-        shuffle=False,
-        num_workers=args.workers)
+#     # Load the validation set as tensors
+#     val_set = dataset(
+#         args.dataset_dir,
+#         transform=val_transform,
+#         mode='val')
+#     val_loader = data.DataLoader(
+#         val_set,
+#         batch_size=args.batch_size,
+#         shuffle=False,
+#         num_workers=args.workers)
 
-    # Load the test set as tensors
-    test_set = dataset(
-        args.dataset_dir,
-        transform=val_transform,
-        mode='test')
-    test_loader = data.DataLoader(
-        test_set,
-        batch_size=args.batch_size,
-        shuffle=False,
-        num_workers=args.workers)
+#     # Load the test set as tensors
+#     test_set = dataset(
+#         args.dataset_dir,
+#         transform=val_transform,
+#         mode='test')
+#     test_loader = data.DataLoader(
+#         test_set,
+#         batch_size=args.batch_size,
+#         shuffle=False,
+#         num_workers=args.workers)
+
+#     return train_loader, val_loader, test_loader
+
+
+def load_dataset():
+
+    data = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42) 
+    data_train, data_val = random_split(data, [0.8, 0.2], generator=torch.Generator().manual_seed(42)) 
+
+    train_loader = DataLoader(data_train, batch_size=128, shuffle=True)
+    val_loader = DataLoader(data_val, batch_size=128, shuffle=True)
+
+
+    data_test = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+    test_loader = DataLoader(data_test, batch_size=128, shuffle=False)
 
     return train_loader, val_loader, test_loader
 
@@ -83,20 +103,24 @@ def train(train_loader, val_loader):
                                      args.lr_decay)
 
     # Optionally resume from a checkpoint
-    if args.resume:
-        model, optimizer, start_epoch, best_loss = utils.load_checkpoint(
-            model, optimizer, args.save_dir, args.name)
-        print("Resuming from model: Start epoch = {0} "
-              "| Best mean loss = {1:.4f}".format(start_epoch, best_loss))
-    else:
-        start_epoch = 0
-        best_loss = 1000
+    # if args.resume:
+    #     model, optimizer, start_epoch, best_loss = utils.load_checkpoint(
+    #         model, optimizer, args.save_dir, args.name)
+    #     print("Resuming from model: Start epoch = {0} "
+    #           "| Best mean loss = {1:.4f}".format(start_epoch, best_loss))
+    # else:
+    #     start_epoch = 0
+    #     best_loss = 1000
+
+    start_epoch = 0
+    best_loss = 1000
+    total_epochs = 2
 
     # Start Training
     print()
     train = Train(model, train_loader, optimizer, criterion, device)
     val = Test(model, val_loader, criterion, device)
-    for epoch in range(start_epoch, args.epochs):
+    for epoch in range(start_epoch, total_epochs):
         print(">>>> [Epoch: {0:d}] Training".format(epoch))
 
         epoch_loss = train.run_epoch(lr_updater, args.print_step)
@@ -114,10 +138,10 @@ def train(train_loader, val_loader):
 
             # Save the model if it's the best thus far
             if loss < best_loss:
-                print("\nBest model thus far. Saving...\n")
+                print(f"\nBest model thus far is {loss}. Saving...\n")
                 best_loss = loss
-                utils.save_checkpoint(model, optimizer, epoch + 1, best_loss,
-                                      args)
+                
+                #TODO: utils.save_checkpoint(model, optimizer, epoch + 1, best_loss, args)
 
     return model
 
@@ -139,16 +163,16 @@ def test(model, test_loader):
 if __name__ == '__main__':
 
     # Fail fast if the dataset directory doesn't exist
-    assert os.path.isdir(
-        args.dataset_dir), "The directory \"{0}\" doesn't exist.".format(
-            args.dataset_dir)
+    # assert os.path.isdir(
+    #     args.dataset_dir), "The directory \"{0}\" doesn't exist.".format(
+    #         args.dataset_dir)
 
     # Fail fast if the saving directory doesn't exist
-    assert os.path.isdir(
-        args.save_dir), "The directory \"{0}\" doesn't exist.".format(
-            args.save_dir)
+    # assert os.path.isdir(
+    #     args.save_dir), "The directory \"{0}\" doesn't exist.".format(
+    #         args.save_dir)
 
-    train_loader, val_loader, test_loader = load_dataset(dataset)
+    train_loader, val_loader, test_loader = load_dataset()
 
     if args.mode.lower() in {'train', 'full'}:
         model = train(train_loader, val_loader)
