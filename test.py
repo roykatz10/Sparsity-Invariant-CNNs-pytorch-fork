@@ -14,6 +14,8 @@ class Test:
 
         self.model.eval()
         epoch_loss = 0.0
+        epoch_acc = 0.0
+
         for step, batch_data in enumerate(self.data_loader):
             # Get the inputs and labels
             inputs = batch_data[0].to(self.device)
@@ -21,7 +23,7 @@ class Test:
 
             with torch.no_grad():
                 # Forward propagation
-                mask = (inputs>0).float()
+                mask = (inputs>=0).float()
                 outputs = self.model(inputs, mask)
 
                 
@@ -41,9 +43,13 @@ class Test:
 
                 loss = nn.CrossEntropyLoss()(outputs, labels)
             # Keep track of loss for current epoch
+                
+            acc = (outputs.max(dim=-1)[1] == labels).sum().item() / len(labels)
+
             epoch_loss += loss.item()
+            epoch_acc += acc
 
             if iteration_loss:
                 print("[Step: %d] Iteration loss: %.4f" % (step, loss.item()))
 
-        return epoch_loss / len(self.data_loader)
+        return epoch_loss / len(self.data_loader), epoch_acc / len(self.data_loader)

@@ -1,4 +1,5 @@
 import torch.nn as nn
+from matplotlib import pyplot as plt
 
 class Train:
 
@@ -21,6 +22,8 @@ class Train:
         """
         self.model.train()
         epoch_loss = 0.0
+        epoch_acc = 0.0
+
         for step, batch_data in enumerate(self.data_loader):
 
             # Get the inputs and labels
@@ -31,34 +34,34 @@ class Train:
             labels = batch_data[1].to(self.device)
 
             # Forward propagation
-            mask = (inputs>0).float()
+
+            # plt.figure()
+            # plt.imshow(inputs[0].squeeze().cpu().detach().numpy())
+            # plt.colorbar()
+            # plt.title('x')
+
+            # plt.figure()
+            # plt.imshow((inputs>0)[0].squeeze().cpu().detach().numpy())
+            # plt.colorbar()
+            # plt.title('mask > 0')
+
+            # plt.figure()
+            # plt.imshow((inputs>=0)[0].squeeze().cpu().detach().numpy())
+            # plt.colorbar()
+            # plt.title('mask >= 0')
+            # plt.show()
+
+            # raise
+            
+
+            mask = (inputs>=0).float()
             outputs = self.model(inputs, mask)
 
             # Loss computation
-            # print('output', outputs.shape)
-            # print('label', labels.shape)
-            # print('mask', mask.shape)
-            # raise
             
             # loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
-
-            # print(outputs.requires_grad)
-            # print(labels.requires_grad)
-            # raise
-            # print(outputs.shape)
-            # print(nn.functional.softmax(outputs, dim=-1).argmax(dim=-1).shape)
-            # print(nn.functional.softmax(outputs, dim=-1))
-            # raise
-            # print(nn.functional.softmax(outputs, dim=-1).argmax(dim=-1))
-            # print(labels)
             loss = nn.CrossEntropyLoss()(outputs, labels)
 
-            # loss = self.criterion(outputs.squeeze().float(), labels.float())
-            # loss.requires_grad = True
-            # print(loss.shape)
-            # print(outputs.squeeze().float().shape)
-            # print(labels.float().shape)
-            # raise
             # Backpropagation
             self.optim.zero_grad()
             loss.backward()
@@ -66,9 +69,12 @@ class Train:
             lr_updater.step()
 
             # Keep track of loss for current epoch
+            acc = (outputs.max(dim=-1)[1] == labels).sum().item() / len(labels)
+
             epoch_loss += loss.item()
+            epoch_acc += acc
 
             if iteration_loss:
                 print("[Step: %d] Iteration loss: %.4f" % (step, loss.item()))
 
-        return epoch_loss / len(self.data_loader)
+        return epoch_loss / len(self.data_loader), epoch_acc / len(self.data_loader)

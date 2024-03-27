@@ -18,6 +18,8 @@ from train import Train
 from test import Test
 from args import get_arguments
 import utils
+
+from matplotlib import pyplot as plt
 # from data import CamVid as dataset
 
 
@@ -114,34 +116,73 @@ def train(train_loader, val_loader):
 
     start_epoch = 0
     best_loss = 1000
-    total_epochs = 2
+    total_epochs = 10
 
     # Start Training
     print()
     train = Train(model, train_loader, optimizer, criterion, device)
     val = Test(model, val_loader, criterion, device)
+
+    train_acc = []
+    train_loss = []
+
+    val_acc = []
+    val_loss = []
+    epochs = []
+
+
     for epoch in range(start_epoch, total_epochs):
         print(">>>> [Epoch: {0:d}] Training".format(epoch))
 
-        epoch_loss = train.run_epoch(lr_updater, args.print_step)
+        epochs.append(epoch)
 
-        print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f}".
-              format(epoch, epoch_loss))
+        epoch_loss, epoch_acc = train.run_epoch(lr_updater, args.print_step)
+
+        train_loss.append(epoch_loss)
+        train_acc.append(epoch_acc)
+
+        # print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f}".format(epoch, epoch_loss))
+        
+        print(f'>>>> [Epoch: {epoch}] Avg. loss: {epoch_loss:.4f} Avg. acc: {epoch_acc:.4f}')
 
         if (epoch + 1) % 1 == 0 or epoch + 1 == args.epochs:
             print(">>>> [Epoch: {0:d}] Validation".format(epoch))
 
-            loss = val.run_epoch(args.print_step)
+            loss, acc = val.run_epoch(args.print_step)
+            
+            val_acc.append(acc)
+            val_loss.append(loss)
 
-            print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f}".
-                  format(epoch, loss))
+            # print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f}".format(epoch, loss))
+            
+            print(f'>>>> [Epoch: {epoch}] Avg. loss: {loss:.4f} Avg. acc: {acc:.4f}')
+
 
             # Save the model if it's the best thus far
             if loss < best_loss:
-                print(f"\nBest model thus far is {loss}. Saving...\n")
+                print(f"\nBest model thus far is loss: {loss:.4f}, acc: {acc:.4f}.\n")
                 best_loss = loss
                 
                 #TODO: utils.save_checkpoint(model, optimizer, epoch + 1, best_loss, args)
+
+
+    plt.figure()
+    plt.plot(epochs, train_acc)
+    plt.plot(epochs, val_acc)
+    plt.legend(['Train', 'Validation'])
+    plt.title('Accuracy')
+    plt.xlabel('epoch')
+    plt.ylabel('acc')
+
+    plt.figure()
+    plt.plot(epochs, train_loss)
+    plt.plot(epochs, val_loss)
+    plt.legend(['Train', 'Validation'])
+    plt.title('Loss')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+
+    plt.show()
 
     return model
 
