@@ -1,2 +1,2 @@
 # Sparsity-Invariant-CNNs-pytorch
-Reproduced  codes for paper “Sparsity Invariant CNNs”
+Reproduced codes for paper “Sparsity Invariant CNNs”
