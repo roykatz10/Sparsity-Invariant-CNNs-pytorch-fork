@@ -56,9 +56,9 @@ class Train:
             # raise
             
 
-            # mask = (inputs>=0).float()
+            mask = (inputs>=0).float()
             # mask = (inputs>-100).float().to(self.device)
-            mask = (torch.rand(inputs.shape) > 0.1).float().to(self.device)
+            # mask = (torch.rand(inputs.shape) > 0.1).float().to(self.device)
 
             outputs = self.model(inputs, mask, epoch_nr, self.device)
 

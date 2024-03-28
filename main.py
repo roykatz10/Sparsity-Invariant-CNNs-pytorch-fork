@@ -14,6 +14,7 @@ from PIL import Image
 
 import transforms as ext_transforms
 from models.SparseConvNet import SparseConvNet
+from models.ConvNet import ConvNet
 from train import Train
 from test import Test
 from args import get_arguments
@@ -96,7 +97,8 @@ def load_dataset():
 def train(train_loader, val_loader):
     print("\nTraining...\n")
 
-    model = SparseConvNet().to(device)
+    # model = SparseConvNet().to(device)
+    model = ConvNet().to(device)
     criterion = nn.MSELoss(reduction='none')
 
     optimizer = optim.Adam(

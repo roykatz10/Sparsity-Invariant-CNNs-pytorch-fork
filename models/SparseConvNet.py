@@ -53,16 +53,17 @@ class SparseConv(nn.Module):
     def forward(self, x, mask, epoch_nr, device):
         x = x*mask
         x = self.conv(x)
-        normalizer1 = (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
-        # normalizer1 = (torch.zeros((normalizer.shape)) + (1 / self.kernel_size)).to(device)
-        # normalizer1 = (torch.ones(normalizer.shape)).to(device)
+        # normalizer = 1 / (self.sparsity(mask)+1e-8)
+        normalizer = (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
+        # normalizer = (torch.zeros((normalizer.shape)) + (1 / self.kernel_size)).to(device)
+        # normalizer = (torch.ones(normalizer.shape)).to(device)
 
         if epoch_nr > self.epoch:
             self.epoch = epoch_nr
             count = 0
 
-
-        if self.count < 1 and epoch_nr > 0:
+        if False:
+        # if self.count < 1 and epoch_nr > 0:
             print(torch.sum(x))
 
             self.count = 1
@@ -73,7 +74,7 @@ class SparseConv(nn.Module):
             print('xsum', torch.sum(x))
             print('x*n1sum', torch.sum(x* normalizer1))
             print('normalizer1', normalizer1)
-        x = (x  * normalizer1 + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3))
+        x = (x  * normalizer + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3))
         x = self.relu(x)
         
         mask = self.max_pool(mask)

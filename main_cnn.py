@@ -70,8 +70,11 @@ model = th.nn.Sequential(th.nn.Conv2d(1, 16, 11),                   # (16, 18, 1
 
 
 criterion = th.nn.CrossEntropyLoss()
-optimizer = th.optim.RMSprop(model.parameters(), lr=0.0005)
+# optimizer = th.optim.RMSprop(model.parameters(), lr=0.0005)
 
+optimizer = th.optim.Adam(model.parameters(),
+                          lr=1e-4,
+                          weight_decay=2e-4)
 
 max_epochs = 10
 
