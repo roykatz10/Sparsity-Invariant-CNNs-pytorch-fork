@@ -23,8 +23,8 @@ class Test:
 
             with torch.no_grad():
                 # Forward propagation
-                mask = (inputs>=0).float()
-                outputs = self.model(inputs, mask)
+                mask = (torch.rand(inputs.shape) > 0.1).float().to(self.device)
+                outputs = self.model(inputs, mask, 0,self.device)
 
                 
                 # plt.figure()

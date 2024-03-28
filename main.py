@@ -140,7 +140,7 @@ def train(train_loader, val_loader):
 
         epochs.append(epoch)
 
-        epoch_loss, epoch_acc = train.run_epoch(lr_updater, args.print_step)
+        epoch_loss, epoch_acc = train.run_epoch(lr_updater, epoch, args.print_step)
 
         train_loss.append(epoch_loss)
         train_acc.append(epoch_acc)

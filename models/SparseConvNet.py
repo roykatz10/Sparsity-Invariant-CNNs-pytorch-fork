@@ -44,13 +44,36 @@ class SparseConv(nn.Module):
             stride=1, 
             padding=padding)
 
+        self.kernel_size = kernel_size
+        self.count = 0
+        self.epoch = 0
+
         
 
-    def forward(self, x, mask):
+    def forward(self, x, mask, epoch_nr, device):
         x = x*mask
         x = self.conv(x)
-        normalizer = 1/(self.sparsity(mask)+1e-8)
-        x = x  + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3)
+        normalizer1 = (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
+        # normalizer1 = (torch.zeros((normalizer.shape)) + (1 / self.kernel_size)).to(device)
+        # normalizer1 = (torch.ones(normalizer.shape)).to(device)
+
+        if epoch_nr > self.epoch:
+            self.epoch = epoch_nr
+            count = 0
+
+
+        if self.count < 1 and epoch_nr > 0:
+            print(torch.sum(x))
+
+            self.count = 1
+            print('x', x)
+            print('x* normalizer1', x * normalizer1)
+            print('normalizer1', normalizer1)
+            # print(self.kernel_size)
+            print('xsum', torch.sum(x))
+            print('x*n1sum', torch.sum(x* normalizer1))
+            print('normalizer1', normalizer1)
+        x = (x  * normalizer1 + self.bias.unsqueeze(0).unsqueeze(2).unsqueeze(3))
         x = self.relu(x)
         
         mask = self.max_pool(mask)
@@ -72,16 +95,16 @@ class SparseConvNet(nn.Module):
         self.SparseLayer6 = SparseConv(16, 1, 1)
 
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(784, 10)          
+        self.linear1 = nn.Linear(784, 10)
 
-    def forward(self, x, mask):
+    def forward(self, x, mask, epoch_nr, device):
                                              # ( 1, 28, 28)
-        x, mask = self.SparseLayer1(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer2(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer3(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer4(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer5(x, mask) # (16, 28, 28)
-        x, mask = self.SparseLayer6(x, mask) # ( 1, 28, 28)
+        x, mask = self.SparseLayer1(x, mask, epoch_nr, device) # (16, 28, 28)
+        x, mask = self.SparseLayer2(x, mask, epoch_nr, device) # (16, 28, 28)
+        x, mask = self.SparseLayer3(x, mask, epoch_nr, device) # (16, 28, 28)
+        x, mask = self.SparseLayer4(x, mask, epoch_nr, device) # (16, 28, 28)
+        x, mask = self.SparseLayer5(x, mask, epoch_nr, device) # (16, 28, 28)
+        x, mask = self.SparseLayer6(x, mask, epoch_nr, device) # ( 1, 28, 28)
 
         x = self.flatten(x) # (1 x 28 x 28 = 784)
         x = self.linear1(x) # (10)

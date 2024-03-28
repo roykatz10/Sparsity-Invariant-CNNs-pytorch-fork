@@ -56,20 +56,21 @@ class Train:
             # raise
             
 
-            mask = (inputs>=0).float()
+            # mask = (inputs>=0).float()
             # mask = (inputs>-100).float().to(self.device)
-            mask = (torch.rand(inputs.shape) > 0.7).float().to(self.device)
+            mask = (torch.rand(inputs.shape) > 0.1).float().to(self.device)
 
-            outputs = self.model(inputs, mask)
+            outputs = self.model(inputs, mask, epoch_nr, self.device)
 
-            if step < 3:
-                print('labels', labels)
-                print('output', torch.argmax(outputs, dim = -1) )
-                print('output2', outputs)
+            # if step < 3:
+            #     print('labels', labels)
+            #     print('output', torch.argmax(outputs, dim = -1) )
+            #     print('output2', outputs)
 
             # Loss computation
             
             # loss = (self.criterion(outputs, labels)*mask.detach()).sum()/mask.sum()
+            # loss = self.criterion(outputs, labels)
             loss = nn.CrossEntropyLoss()(outputs, labels)
 
             # Backpropagation
