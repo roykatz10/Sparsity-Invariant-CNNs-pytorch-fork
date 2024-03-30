@@ -1,14 +1,17 @@
 import torch.nn as nn
 import torch
-
+from typing import Literal
 
 class SparseConv(nn.Module):
 
     def __init__(self,
                  in_channels,
                  out_channels,
-                 kernel_size):
+                 kernel_size,
+                 normalizer_type:Literal['Original', 'Fix']):
         super().__init__()
+
+        self.normalizer_type = normalizer_type
 
         padding = kernel_size//2
 
@@ -54,9 +57,11 @@ class SparseConv(nn.Module):
         x = x*mask
         x = self.conv(x)
         # normalizer = 1 / (self.sparsity(mask)+1e-8)
-        normalizer = (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
+        # normalizer = (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
         # normalizer = (torch.zeros((normalizer.shape)) + (1 / self.kernel_size)).to(device)
         # normalizer = (torch.ones(normalizer.shape)).to(device)
+
+        normalizer = 1 / (self.sparsity(mask)+1e-8) if self.normalizer_type == 'Original' else (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
 
         if epoch_nr > self.epoch:
             self.epoch = epoch_nr
@@ -85,15 +90,15 @@ class SparseConv(nn.Module):
 
 class SparseConvNet(nn.Module):
 
-    def __init__(self):
+    def __init__(self, normalizer_type:Literal['Original', 'Fix']):
         super().__init__()
 
-        self.SparseLayer1 = SparseConv(1, 16, 11)
-        self.SparseLayer2 = SparseConv(16, 16, 7)
-        self.SparseLayer3 = SparseConv(16, 16, 5)
-        self.SparseLayer4 = SparseConv(16, 16, 3)
-        self.SparseLayer5 = SparseConv(16, 16, 3)
-        self.SparseLayer6 = SparseConv(16, 1, 1)
+        self.SparseLayer1 = SparseConv(1, 16, 11, normalizer_type)
+        self.SparseLayer2 = SparseConv(16, 16, 7, normalizer_type)
+        self.SparseLayer3 = SparseConv(16, 16, 5, normalizer_type)
+        self.SparseLayer4 = SparseConv(16, 16, 3, normalizer_type)
+        self.SparseLayer5 = SparseConv(16, 16, 3, normalizer_type)
+        self.SparseLayer6 = SparseConv(16, 1, 1, normalizer_type)
 
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(784, 10)

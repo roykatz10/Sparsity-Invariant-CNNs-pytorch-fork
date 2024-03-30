@@ -8,22 +8,23 @@ class ConvNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.layers = nn.ParameterList([nn.Conv2d(1, 16, 11),                   # (16, 18, 18)
-                       nn.ReLU(),                              # (16, 18, 18)
-                       nn.Conv2d(16, 16, 7),                   # (16, 12, 12)
-                       nn.ReLU(),                              # (16, 12, 12)
-                       nn.Conv2d(16, 16, 5),                   # (16,  8,  8)
-                       nn.ReLU(),                              # (16,  8,  8)
-                       nn.Conv2d(16, 16, 3),                   # (16,  6,  6)
-                       nn.ReLU(),                              # (16,  6,  6)
-                       nn.Conv2d(16, 16, 3),                   # (16,  4,  4)
-                       nn.ReLU(),                              # (16,  4,  4)
-                       nn.Flatten(),                           # (256)
-                       nn.Linear(256, 128),   # (128)
-                       nn.ReLU(),             # (128)
-                       nn.Linear(128, 32),    # ( 32)
-                       nn.ReLU(),             # ( 32)
-                       nn.Linear(32, 10)      # ( 10)
+        self.layers = nn.ParameterList([
+                       nn.Conv2d(1, 16, 11, padding=11//2),                   # (16, 28, 28)
+                       nn.ReLU(),                                             # (16, 28, 28)
+                       nn.Conv2d(16, 16, 7, padding= 7//2),                   # (16, 28, 28)
+                       nn.ReLU(),                                             # (16, 28, 28)
+                       nn.Conv2d(16, 16, 5, padding= 5//2),                   # (16, 28, 28)
+                       nn.ReLU(),                                             # (16, 28, 28)
+                       nn.Conv2d(16, 16, 3, padding= 3//2),                   # (16, 28, 28)
+                       nn.ReLU(),                                             # (16, 28, 28)
+                       nn.Conv2d(16, 16, 3, padding= 3//2),                   # (16, 28, 28)
+                       nn.ReLU(),                                             # (16, 28, 28)
+                    #    nn.Conv2d(16, 1, 1),                                   # ( 1, 28, 28)
+                    #    nn.ReLU(),                                             # ( 1, 28, 28)
+                       nn.Flatten(),                                          # (12544)
+                       nn.Linear(12544, 784),
+                       nn.ReLU(),
+                       nn.Linear(784, 10)                                     # (10)
                       ])
 
 
