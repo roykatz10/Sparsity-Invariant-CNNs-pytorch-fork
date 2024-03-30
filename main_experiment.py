@@ -24,7 +24,7 @@ SPARSITY = 0.05
 model = ConvNet().to(device)
 
 # Export Settings
-RESULT_OUTPUT_FILE = 'ConvNet'
+RESULT_OUTPUT_FILE = 'ConvNet0.05'
 RESULT_OUTPUT_DIR = 'results'
 
 #Training Settings
