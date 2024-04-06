@@ -8,7 +8,7 @@ class SparseConv(nn.Module):
                  in_channels,
                  out_channels,
                  kernel_size,
-                 normalizer_type:Literal['Original', 'Fix']):
+                 normalizer_type:Literal['Original', 'Fix', 'None']):
         super().__init__()
 
         self.normalizer_type = normalizer_type
@@ -61,7 +61,18 @@ class SparseConv(nn.Module):
         # normalizer = (torch.zeros((normalizer.shape)) + (1 / self.kernel_size)).to(device)
         # normalizer = (torch.ones(normalizer.shape)).to(device)
 
-        normalizer = 1 / (self.sparsity(mask)+1e-8) if self.normalizer_type == 'Original' else (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
+        if self.normalizer_type == 'Original':
+            normalizer = 1 / (self.sparsity(mask)+1e-8)
+        elif self.normalizer_type == 'Fix':
+            normalizer = (self.kernel_size * self.kernel_size)/ (self.sparsity(mask)+1e-8)
+        elif self.normalizer_type == 'None':
+            normalizer = torch.ones(x.shape).to(device)
+        else:
+            raise Exception(f'Type not implemented: {self.normalizer_type}')
+
+
+        # normalizer.to(device)
+
 
         if epoch_nr > self.epoch:
             self.epoch = epoch_nr
@@ -90,29 +101,70 @@ class SparseConv(nn.Module):
 
 class SparseConvNet(nn.Module):
 
-    def __init__(self, normalizer_type:Literal['Original', 'Fix']):
+    def __init__(self, architecture:Literal['Original', 'New'] ,normalizer_type:Literal['Original', 'Fix', 'None']):
         super().__init__()
 
-        self.SparseLayer1 = SparseConv(1, 16, 11, normalizer_type)
-        self.SparseLayer2 = SparseConv(16, 16, 7, normalizer_type)
-        self.SparseLayer3 = SparseConv(16, 16, 5, normalizer_type)
-        self.SparseLayer4 = SparseConv(16, 16, 3, normalizer_type)
-        self.SparseLayer5 = SparseConv(16, 16, 3, normalizer_type)
-        self.SparseLayer6 = SparseConv(16, 1, 1, normalizer_type)
+        if architecture == 'Original':
+            self.layers = nn.ParameterList([SparseConv(1, 16, 11, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 7, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 5, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 3, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 3, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 1, 1, normalizer_type),      # ( 1, 28, 28)
+                                            nn.Flatten(),                               # ( 784)
+                                            nn.Linear(784, 10)                          # ( 10)
+                                            ])
+            
+        elif architecture == 'New':
+            self.layers = nn.ParameterList([SparseConv(1, 16, 11, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 7, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 5, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 3, normalizer_type),     # (16, 28, 28)
+                                            SparseConv(16, 16, 3, normalizer_type),     # (16, 28, 28)
+                                            nn.Flatten(),                               # ( 12544)
+                                            nn.Linear(12544, 784),                      # ( 784)
+                                            nn.ReLU(),                                  # ( 784)
+                                            nn.Linear(784, 10)                          # ( 10)
+                                            ])
+            
+        else:
+            raise Exception(f'Architecture not implemented: {architecture}')
 
-        self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(784, 10)
+        # self.SparseLayer1 = SparseConv(1, 16, 11, normalizer_type)
+        # self.SparseLayer2 = SparseConv(16, 16, 7, normalizer_type)
+        # self.SparseLayer3 = SparseConv(16, 16, 5, normalizer_type)
+        # self.SparseLayer4 = SparseConv(16, 16, 3, normalizer_type)
+        # self.SparseLayer5 = SparseConv(16, 16, 3, normalizer_type)
+        # self.SparseLayer6 = SparseConv(16, 1, 1, normalizer_type)
+
+        # self.flatten = nn.Flatten()
+        # self.linear0 = nn.Linear(12544, 784)
+        # self.activation0 = nn.ReLU()
+        # self.linear1 = nn.Linear(784, 10)
 
     def forward(self, x, mask, epoch_nr, device):
                                              # ( 1, 28, 28)
-        x, mask = self.SparseLayer1(x, mask, epoch_nr, device) # (16, 28, 28)
-        x, mask = self.SparseLayer2(x, mask, epoch_nr, device) # (16, 28, 28)
-        x, mask = self.SparseLayer3(x, mask, epoch_nr, device) # (16, 28, 28)
-        x, mask = self.SparseLayer4(x, mask, epoch_nr, device) # (16, 28, 28)
-        x, mask = self.SparseLayer5(x, mask, epoch_nr, device) # (16, 28, 28)
-        x, mask = self.SparseLayer6(x, mask, epoch_nr, device) # ( 1, 28, 28)
+        # x, mask = self.SparseLayer1(x, mask, epoch_nr, device) # (16, 28, 28)
+        # x, mask = self.SparseLayer2(x, mask, epoch_nr, device) # (16, 28, 28)
+        # x, mask = self.SparseLayer3(x, mask, epoch_nr, device) # (16, 28, 28)
+        # x, mask = self.SparseLayer4(x, mask, epoch_nr, device) # (16, 28, 28)
+        # x, mask = self.SparseLayer5(x, mask, epoch_nr, device) # (16, 28, 28)
+        # x, mask = self.SparseLayer6(x, mask, epoch_nr, device) # ( 1, 28, 28)
 
-        x = self.flatten(x) # (1 x 28 x 28 = 784)
-        x = self.linear1(x) # (10)
+        # x = self.flatten(x) # (1 x 28 x 28 = 784)
+        # # x = self.linear0(x)
+        # # x = self.activation0(x)
+        # x = self.linear1(x) # (10)
+
+
+
+
+        for layer in self.layers:
+            
+            if isinstance(layer, SparseConv):
+                x, mask = layer(x, mask, epoch_nr, device)
+            
+            else:
+                x = layer(x)
 
         return x
